@@ -25,13 +25,14 @@ const cache = new Map<UberScope, CachedToken>();
 const inFlight = new Map<UberScope, Promise<string>>();
 
 export class UberAuthError extends Error {
-  constructor(
-    readonly code: string,
-    message: string,
-    readonly httpStatus: number,
-  ) {
+  readonly code: string;
+  readonly httpStatus: number;
+
+  constructor(code: string, message: string, httpStatus: number) {
     super(message);
     this.name = "UberAuthError";
+    this.code = code;
+    this.httpStatus = httpStatus;
   }
 }
 

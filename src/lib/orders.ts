@@ -29,13 +29,14 @@ import type {
 import type { QuoteRequestInput } from "./validation";
 
 export class OrderError extends Error {
-  constructor(
-    message: string,
-    readonly status = 400,
-    readonly code = "invalid_request",
-  ) {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(message: string, status = 400, code = "invalid_request") {
     super(message);
     this.name = "OrderError";
+    this.status = status;
+    this.code = code;
   }
 }
 

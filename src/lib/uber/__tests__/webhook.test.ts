@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { computeSignature, verifyWebhookSignature } from "../webhook";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { computeSignature, verifyWebhookSignature } from "../webhook.ts";
 
 const KEY = "whsec_test_key";
 
@@ -21,7 +22,7 @@ describe("verifyWebhookSignature", () => {
       kind: "event.delivery_status",
       signingKey: KEY,
     });
-    expect(result.valid).toBe(true);
+    assert.strictEqual(result.valid, true);
   });
 
   it("rejects a tampered body", () => {
@@ -34,8 +35,8 @@ describe("verifyWebhookSignature", () => {
       kind: "event.delivery_status",
       signingKey: KEY,
     });
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Signature mismatch.");
+    assert.strictEqual(result.valid, false);
+    assert.strictEqual(result.reason, "Signature mismatch.");
   });
 
   it("rejects a signature made with a different key", () => {
@@ -45,7 +46,7 @@ describe("verifyWebhookSignature", () => {
       kind: "event.delivery_status",
       signingKey: KEY,
     });
-    expect(result.valid).toBe(false);
+    assert.strictEqual(result.valid, false);
   });
 
   it("verifies against the raw bytes, so unicode escapes survive", () => {
@@ -53,8 +54,11 @@ describe("verifyWebhookSignature", () => {
     // the \uXXXX escapes, producing a different digest. This asserts that the
     // difference is real, which is why the route never re-serialises.
     const reserialized = JSON.stringify(JSON.parse(RAW_BODY));
-    expect(reserialized).not.toBe(RAW_BODY);
-    expect(computeSignature(reserialized, KEY)).not.toBe(computeSignature(RAW_BODY, KEY));
+    assert.notStrictEqual(reserialized, RAW_BODY);
+    assert.notStrictEqual(
+      computeSignature(reserialized, KEY),
+      computeSignature(RAW_BODY, KEY),
+    );
   });
 
   it("accepts x-postmates-signature for delivery status", () => {
@@ -64,7 +68,7 @@ describe("verifyWebhookSignature", () => {
       kind: "event.delivery_status",
       signingKey: KEY,
     });
-    expect(result.valid).toBe(true);
+    assert.strictEqual(result.valid, true);
   });
 
   it("does NOT accept x-postmates-signature for the refund webhook", () => {
@@ -74,8 +78,8 @@ describe("verifyWebhookSignature", () => {
       kind: "event.refund_request",
       signingKey: KEY,
     });
-    expect(result.valid).toBe(false);
-    expect(result.reason).toContain("x-uber-signature");
+    assert.strictEqual(result.valid, false);
+    assert.ok(result.reason?.includes("x-uber-signature"));
   });
 
   it("fails closed when no signing key is configured", () => {
@@ -85,6 +89,6 @@ describe("verifyWebhookSignature", () => {
       kind: "event.delivery_status",
       signingKey: "",
     });
-    expect(result.valid).toBe(false);
+    assert.strictEqual(result.valid, false);
   });
 });

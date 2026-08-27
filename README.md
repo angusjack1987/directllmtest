@@ -8,12 +8,30 @@ It runs with **no Uber credentials**: a mock client returns realistic objects an
 simulated courier through the real status sequence. Drop real keys into `.env.local` and it
 talks to the live API instead, with no code changes.
 
+Requires **Node 22.18 or newer** — the tests are TypeScript run directly by Node's built-in
+test runner, which needs type stripping on by default.
+
 ```bash
 npm install
 npm run dev          # http://localhost:3000 — mock mode by default
-npm run test         # 51 unit tests
+npm test             # 51 tests, no test framework installed
 npm run build
 ```
+
+### Dependencies are deliberately minimal
+
+Runtime: `next`, `react`, `react-dom`, `zod`. Dev: TypeScript and its `@types`. That's it —
+32 packages installed.
+
+Tests run on `node --test` with `node:assert`, so there is no vitest/vite/rollup/esbuild
+tree. React is pinned to 18.x rather than 19.x. Both choices are so the project installs
+behind a curated corporate registry, where a large transitive tree is a large surface for
+policy blocks and mirror lag.
+
+`package-lock.json` is intentionally **not** committed, so npm resolves against whichever
+versions your registry mirror actually carries instead of demanding exact versions from
+someone else's. The trade is reproducibility: add a lockfile if you control your registry
+and want installs pinned.
 
 ## What it does
 

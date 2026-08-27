@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
-import { selectDropoffVerification } from "../verification";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import { selectDropoffVerification } from "../verification.ts";
 
 const MEET = "deliverable_action_meet_at_door" as const;
 const LEAVE = "deliverable_action_leave_at_door" as const;
 
-function countTypes(requirement: ReturnType<typeof selectDropoffVerification>["requirement"]): number {
+function countTypes(
+  requirement: ReturnType<typeof selectDropoffVerification>["requirement"],
+): number {
   if (!requirement) return 0;
   return [
     requirement.signature_requirement?.enabled,
@@ -25,7 +28,7 @@ describe("selectDropoffVerification", () => {
     ] as const;
 
     for (const input of cases) {
-      expect(countTypes(selectDropoffVerification(input).requirement)).toBeLessThanOrEqual(1);
+      assert.ok(countTypes(selectDropoffVerification(input).requirement) <= 1);
     }
   });
 
@@ -34,7 +37,7 @@ describe("selectDropoffVerification", () => {
       merchantType: "MERCHANT_TYPE_RESTAURANT",
       deliverableAction: LEAVE,
     });
-    expect(requirement).toEqual({ picture: true });
+    assert.deepStrictEqual(requirement, { picture: true });
   });
 
   it("never asks for a photo on meet at door", () => {
@@ -42,7 +45,7 @@ describe("selectDropoffVerification", () => {
       merchantType: "MERCHANT_TYPE_RESTAURANT",
       deliverableAction: MEET,
     });
-    expect(requirement?.picture).toBeUndefined();
+    assert.strictEqual(requirement?.picture, undefined);
   });
 
   it("never asks for a signature on food", () => {
@@ -50,13 +53,13 @@ describe("selectDropoffVerification", () => {
       merchantType: "MERCHANT_TYPE_RESTAURANT",
       deliverableAction: MEET,
     });
-    expect(requirement?.signature_requirement).toBeUndefined();
+    assert.strictEqual(requirement?.signature_requirement, undefined);
   });
 
   it("uses a signature for pharmacy and retail", () => {
     for (const merchantType of ["MERCHANT_TYPE_PHARMACY", "MERCHANT_TYPE_RETAIL"] as const) {
       const { requirement } = selectDropoffVerification({ merchantType, deliverableAction: MEET });
-      expect(requirement?.signature_requirement?.enabled).toBe(true);
+      assert.strictEqual(requirement?.signature_requirement?.enabled, true);
     }
   });
 
@@ -67,9 +70,9 @@ describe("selectDropoffVerification", () => {
       ageRestricted: true,
       highRisk: true,
     });
-    expect(requirement?.identification?.min_age).toBe(21);
-    expect(requirement?.pincode).toBeUndefined();
-    expect(countTypes(requirement)).toBe(1);
+    assert.strictEqual(requirement?.identification?.min_age, 21);
+    assert.strictEqual(requirement?.pincode, undefined);
+    assert.strictEqual(countTypes(requirement), 1);
   });
 
   it("skips the sobriety check for non-alcohol age-restricted goods", () => {
@@ -79,17 +82,19 @@ describe("selectDropoffVerification", () => {
       ageRestricted: true,
       ageRestrictedNonAlcohol: true,
     });
-    expect(requirement?.identification?.no_sobriety_check).toBe(true);
+    assert.strictEqual(requirement?.identification?.no_sobriety_check, true);
   });
 
   it("refuses to leave an age-restricted order at the door", () => {
-    expect(() =>
-      selectDropoffVerification({
-        merchantType: "MERCHANT_TYPE_LIQUOR",
-        deliverableAction: LEAVE,
-        ageRestricted: true,
-      }),
-    ).toThrow(/can't be left at the door/);
+    assert.throws(
+      () =>
+        selectDropoffVerification({
+          merchantType: "MERCHANT_TYPE_LIQUOR",
+          deliverableAction: LEAVE,
+          ageRestricted: true,
+        }),
+      /can't be left at the door/,
+    );
   });
 
   it("uses a pincode alone for a high-risk meet-at-door order", () => {
@@ -98,7 +103,7 @@ describe("selectDropoffVerification", () => {
       deliverableAction: MEET,
       highRisk: true,
     });
-    expect(requirement?.pincode?.enabled).toBe(true);
-    expect(requirement?.signature_requirement).toBeUndefined();
+    assert.strictEqual(requirement?.pincode?.enabled, true);
+    assert.strictEqual(requirement?.signature_requirement, undefined);
   });
 });

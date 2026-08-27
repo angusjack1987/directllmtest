@@ -13,3 +13,6 @@ next-env.d.ts
 .DS_Store
 *.pem
 npm-debug.log*
+
+# Resolved against whichever registry mirror you install from, so it is not committed.
+package-lock.json

@@ -25,13 +25,13 @@ const MAX_PICKUP_READY_DAYS = 30;
 export type WindowMode = "asap" | "scheduled_food" | "scheduled_retail";
 
 export class DeliveryWindowError extends Error {
-  constructor(
-    /** Mirrors the API error code this would have produced. */
-    readonly code: string,
-    message: string,
-  ) {
+  /** Mirrors the API error code this would have produced. */
+  readonly code: string;
+
+  constructor(code: string, message: string) {
     super(message);
     this.name = "DeliveryWindowError";
+    this.code = code;
   }
 }
 

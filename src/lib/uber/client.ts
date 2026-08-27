@@ -5,7 +5,7 @@
  * hostname — sandbox vs production is decided by which credentials are in use.
  */
 
-import { getAccessToken, type UberScope } from "./auth";
+import { getAccessToken, type UberScope } from "./auth.ts";
 
 export const UBER_API_BASE = "https://api.uber.com/v1";
 
@@ -22,16 +22,18 @@ export interface UberErrorBody {
 }
 
 export class UberApiError extends Error {
-  constructor(
-    /** e.g. invalid_params, address_undeliverable, expired_quote, customer_limited. */
-    readonly code: string,
-    message: string,
-    readonly httpStatus: number,
-    /** Present on invalid_params: the specific sub-case. */
-    readonly paramDetails?: unknown,
-  ) {
+  /** e.g. invalid_params, address_undeliverable, expired_quote, customer_limited. */
+  readonly code: string;
+  readonly httpStatus: number;
+  /** Present on invalid_params: the specific sub-case. */
+  readonly paramDetails?: unknown;
+
+  constructor(code: string, message: string, httpStatus: number, paramDetails?: unknown) {
     super(message);
     this.name = "UberApiError";
+    this.code = code;
+    this.httpStatus = httpStatus;
+    this.paramDetails = paramDetails;
   }
 
   /** True when the caller should fix the request rather than resend it as-is. */
